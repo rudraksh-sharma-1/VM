@@ -1,22 +1,31 @@
 import React, { useState } from "react";
 import UserInputForm from "./components/UserInputForm";
+import WeeklyCharts from "./components/WeeklyCharts";
+import MacroPieChart from "./components/MacroPieChart";
 import RecommendationList from "./components/RecommendationList";
+import "./App.css";
 
-const App = () => {
-  const [recommendations, setRecommendations] = useState(null); // State for recommendations
+function App() {
+  const [recommendationData, setRecommendationData] = useState(null);
 
-  // Function to handle recommendations received from the backend
-  const handleGenerateRecommendations = (data) => {
-    setRecommendations(data);
+  const handleRecommendations = (data) => {
+    setRecommendationData(data);
   };
 
   return (
-    <div>
-      <h1>Personalized Nutrition Planner</h1>
-      <UserInputForm onGenerate={handleGenerateRecommendations} />
-      {recommendations && <RecommendationList recommendations={recommendations} />}
+    <div className="App">
+      <h1>Nutrition Planner</h1>
+      <UserInputForm onReceiveData={handleRecommendations} />
+
+      {recommendationData && (
+        <>
+          <MacroPieChart macroData={recommendationData.macronutrient_distribution} />
+          <WeeklyCharts data={recommendationData.weekly_charts} />
+          <RecommendationList recommendations={recommendationData} />
+        </>
+      )}
     </div>
   );
-};
+}
 
 export default App;

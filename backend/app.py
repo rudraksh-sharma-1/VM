@@ -3,25 +3,22 @@ from flask_cors import CORS
 import pandas as pd
 from scipy.optimize import linprog
 import os
+import random
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for React frontend
+CORS(app)
 
-# Load dataset (Ensure the dataset is in the same directory as `app.py`)
 DATA_FILE = os.path.join(os.path.dirname(__file__), "FOOD-DATA-GROUP1.csv")
 data = pd.read_csv(DATA_FILE)
 
-# Select necessary columns for recommendations
 data = data.rename(columns={
     "Caloric Value": "calories",
     "Protein": "protein",
     "Carbohydrates": "carbs",
     "Fat": "fat"
 })
-
 data = data[["food", "calories", "protein", "carbs", "fat"]]
 
-# Calculate Daily Caloric Needs
 def calculate_calories(age, gender, weight, height, activity_level):
     if gender == "male":
         bmr = 10 * weight + 6.25 * height - 5 * age + 5
@@ -37,7 +34,6 @@ def calculate_calories(age, gender, weight, height, activity_level):
     }
     return bmr * activity_multipliers.get(activity_level.lower(), 1.2)
 
-# Recommend Meals
 def recommend_meals(data, daily_calories, protein_ratio, carb_ratio, fat_ratio):
     protein_calories = daily_calories * protein_ratio
     carb_calories = daily_calories * carb_ratio
@@ -58,8 +54,8 @@ def recommend_meals(data, daily_calories, protein_ratio, carb_ratio, fat_ratio):
 
     if res.success:
         selected_foods = res.x
-        recommended_foods = data.iloc[(selected_foods > 0).nonzero()[0]].to_dict(orient='records')
-        return recommended_foods
+        recommended_foods = data.iloc[(selected_foods > 0).nonzero()[0]].copy()
+        return recommended_foods.to_dict(orient='records')
     else:
         return []
 
@@ -85,13 +81,24 @@ def get_recommendations():
         fat_ratio
     )
 
+    weekly_distribution = [
+        {
+            "day": day,
+            "protein": round((daily_calories * protein_ratio) / 4 + random.uniform(-5, 5), 2),
+            "carbs": round((daily_calories * carb_ratio) / 4 + random.uniform(-5, 5), 2),
+            "fat": round((daily_calories * fat_ratio) / 9 + random.uniform(-2, 2), 2)
+        }
+        for day in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    ]
+
     response = {
-        "caloric_needs": daily_calories,
+        "caloric_needs": round(daily_calories, 2),
         "macronutrient_distribution": {
-            "protein": daily_calories * protein_ratio / 4,
-            "carbs": daily_calories * carb_ratio / 4,
-            "fat": daily_calories * fat_ratio / 9
+            "protein": round(daily_calories * protein_ratio / 4, 2),
+            "carbs": round(daily_calories * carb_ratio / 4, 2),
+            "fat": round(daily_calories * fat_ratio / 9, 2)
         },
+        "weekly_charts": weekly_distribution,
         "recommended_foods": recommendations
     }
 
