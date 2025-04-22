@@ -1,19 +1,11 @@
 import React from "react";
 
 const RecommendationList = ({ recommendations }) => {
-  if (
-    !recommendations ||
-    !recommendations.recommended_foods ||
-    recommendations.recommended_foods.length === 0
-  ) {
+  if (!recommendations || !recommendations.recommended_foods) {
     return <p>No recommendations yet. Fill out the form to get started!</p>;
   }
 
-  const {
-    caloric_needs,
-    macronutrient_distribution,
-    recommended_foods,
-  } = recommendations;
+  const { caloric_needs, macronutrient_distribution, recommended_foods } = recommendations;
 
   return (
     <div>
@@ -21,10 +13,7 @@ const RecommendationList = ({ recommendations }) => {
 
       <div>
         <h3>Caloric and Macronutrient Needs</h3>
-        <p>
-          <strong>Daily Caloric Needs:</strong> {caloric_needs.toFixed(2)} kcal
-        </p>
-        <p><strong>Macronutrient Distribution:</strong></p>
+        <p><strong>Daily Caloric Needs:</strong> {caloric_needs.toFixed(2)} kcal</p>
         <ul>
           <li><strong>Protein:</strong> {macronutrient_distribution.protein.toFixed(2)}g</li>
           <li><strong>Carbs:</strong> {macronutrient_distribution.carbs.toFixed(2)}g</li>
@@ -33,18 +22,23 @@ const RecommendationList = ({ recommendations }) => {
       </div>
 
       <div>
-        <h3>Recommended Foods</h3>
-        <ul>
-          {recommended_foods.map((meal, index) => (
-            <li key={index}>
-              <strong>{meal.food}</strong>
-              <p>Calories: {meal.calories} kcal</p>
-              <p>Protein: {meal.protein}g</p>
-              <p>Carbs: {meal.carbs}g</p>
-              <p>Fat: {meal.fat}g</p>
-            </li>
-          ))}
-        </ul>
+        <h3>Meal Plan</h3>
+        {Object.entries(recommended_foods).map(([meal, foods]) => (
+          <div key={meal}>
+            <h4 style={{ textTransform: "capitalize" }}>{meal}</h4>
+            <ul>
+              {foods.map((item, idx) => (
+                <li key={idx}>
+                  <strong>{item.food}</strong> — 
+                  {item.calories?.toFixed(2)} kcal, 
+                  Protein: {item.protein}g, 
+                  Carbs: {item.carbs}g, 
+                  Fat: {item.fat}g
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
     </div>
   );
